@@ -165,7 +165,7 @@ main(int argc, char* argv[])
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
-    // Flow
+    // Flow udp
     uint16_t port = 7;
     Address localAddress(InetSocketAddress(Ipv4Address::GetAny(), port));
     PacketSinkHelper packetSinkHelper(socketType, localAddress);
@@ -190,6 +190,36 @@ main(int argc, char* argv[])
     apps.Add(onoff.Install(nodes.Get(0)));
     apps.Start(Seconds(1.0));
     apps.Stop(Seconds(simulationTime + 0.1));
+    
+    
+    
+    
+    
+    //flow Tcp
+     uint16_t porttcp = 9;
+     socketType = "ns3::TcpSocketFactory";
+    Address localAddresstcp(InetSocketAddress(Ipv4Address::GetAny(), porttcp));
+    PacketSinkHelper packetSinkHelpertcp (socketType, localAddresstcp);
+    ApplicationContainer sinkApptcp = packetSinkHelpertcp.Install(nodes.Get(7));
+
+    sinkApptcp.Start(Seconds(0.0));
+    sinkApptcp.Stop(Seconds(simulationTime + 0.1));
+
+   
+
+    OnOffHelper onofftcp(socketType, Ipv4Address::GetAny());
+    onofftcp.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1]"));
+    onofftcp.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
+    onofftcp.SetAttribute("PacketSize", UintegerValue(payloadSize));
+    onofftcp.SetAttribute("DataRate", StringValue("50Mbps")); // bit/s
+    ApplicationContainer appstcp;
+
+    InetSocketAddress rmttcp(interfaces67.GetAddress(0), porttcp);
+    onofftcp.SetAttribute("Remote", AddressValue(rmttcp));
+    onofftcp.SetAttribute("Tos", UintegerValue(0xb8));
+    appstcp.Add(onoff.Install(nodes.Get(0)));
+    appstcp.Start(Seconds(1.0));
+    appstcp.Stop(Seconds(simulationTime + 0.1));
 
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll();
